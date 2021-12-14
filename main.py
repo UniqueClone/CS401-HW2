@@ -10,14 +10,7 @@ from numpy import loadtxt
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
 from tensorflow import keras
-from keras.models import Sequential
-from keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
-
-
-def standardiseData(matrix):
-    scaler = StandardScaler()
-    return scaler.fit_transform(matrix)
 
 
 def plot_roc(labels, data, model):
@@ -27,38 +20,6 @@ def plot_roc(labels, data, model):
     plt.xlabel("False Positive Rate [%]")
     plt.ylabel("True Positive Rate [%]")
     plt.show()
-
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
-dataset = loadtxt('train-io.txt', delimiter=' ')
-
-X = dataset[:, 0:10]
-y = dataset[:, 10]
-
-train_data_scaled = standardiseData(X)
-
-
-def train():
-
-    model = Sequential()
-
-    model.add(Dense(128, input_dim=10, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(32, activation='relu'))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    # model.compile(loss='binary_crossentropy', optimizer=keras.optimizers.Adam(learning_rate=0.001), metrics=['accuracy'])
-
-    model.fit(train_data_scaled, y, epochs=1000)
-
-    save_q = input("Save the model? (y/n").upper()
-
-    if save_q == 'Y':
-        model.save('ML_model')
 
 
 def kfoldCrossValidation(X, y, k=8):
@@ -78,28 +39,33 @@ def kfoldCrossValidation(X, y, k=8):
     return validation_scores
 
 
-trainingQ = input("Train?").upper()
-# train()
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
+dataset = loadtxt('Files/train-io.txt', delimiter=' ')
+
+X = dataset[:, 0:10]
+y = dataset[:, 10]
 
 train_data_scaled = StandardScaler().fit_transform(X)
-results = kfoldCrossValidation(train_data_scaled, y, k=8)
-avg_acc = 0
-avg_loss = 0
-k = len(results)
-for i in results:
-    avg_loss += i[0] / k
-    avg_acc += i[1] / k
-print('AVG LOSS: ' + str(avg_loss))
-print('AVG ACCURACY: ' + str(avg_acc))
-print(avg_loss, avg_acc)
+
+# The following commented-out lined perform k-fold cross validation
+# results = kfoldCrossValidation(train_data_scaled, y, k=8)
+# avg_acc = 0
+# avg_loss = 0
+# k = len(results)
+# for i in results:
+#     avg_loss += i[0] / k
+#     avg_acc += i[1] / k
+# print('AVG LOSS: ' + str(avg_loss))
+# print('AVG ACCURACY: ' + str(avg_acc))
+# print(avg_loss, avg_acc)
 
 # model.fit(X, y, epochs=150, batch_size=32)
 model = keras.models.load_model('ML_model')
 _, accuracy = model.evaluate(train_data_scaled, y)
 print('Accuracy: %.2f' % (accuracy * 100))
 
-test_dataset = loadtxt('test-i.txt', delimiter=' ')
+test_dataset = loadtxt('Files/test-i.txt', delimiter=' ')
 
 X = test_dataset[:, 0:10]
 
@@ -110,7 +76,9 @@ for prediction in testing_output:
     # Round the outputs to 0 or 1 and write to file
     test_output_file.write(str(round(float(prediction))) + '\n')
 
-plot_roc(y[-1000:], train_data_scaled[-1000:], model)
+# Uncomment to plot ROC, output in Report.md
+# plot_roc(y[-1000:], train_data_scaled[-1000:], model)
 
 # data = pd.DataFrame(X, columns=range(1, 11))
 
+print("\nDone")
