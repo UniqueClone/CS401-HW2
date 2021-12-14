@@ -82,7 +82,6 @@ trainingQ = input("Train?").upper()
 # train()
 
 
-
 train_data_scaled = StandardScaler().fit_transform(X)
 results = kfoldCrossValidation(train_data_scaled, y, k=8)
 avg_acc = 0
@@ -105,10 +104,10 @@ test_dataset = loadtxt('test-i.txt', delimiter=' ')
 X = test_dataset[:, 0:10]
 
 testing_output = model.predict(X)
-print(testing_output)
 
 test_output_file = open('test-o.txt', 'w')
 for prediction in testing_output:
+    # Round the outputs to 0 or 1 and write to file
     test_output_file.write(str(round(float(prediction))) + '\n')
 
 plot_roc(y[-1000:], train_data_scaled[-1000:], model)
